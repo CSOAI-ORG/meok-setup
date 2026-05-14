@@ -1,0 +1,46 @@
+{
+  "name": "meok-setup",
+  "version": "1.0.1",
+  "description": "Zero-friction installer for MEOK AI Labs governance MCPs. One command sets up EU AI Act, DORA, NIS2, CRA, GDPR, and more across Claude Desktop, Cursor, VS Code, Windsurf.",
+  "bin": {
+    "meok-setup": "./bin/meok-setup.js"
+  },
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://meok.ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CSOAI-ORG/meok-setup"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "ai-governance",
+    "eu-ai-act",
+    "dora",
+    "nis2",
+    "cra",
+    "gdpr",
+    "compliance",
+    "meok",
+    "model-context-protocol",
+    "claude-desktop",
+    "cursor",
+    "vscode",
+    "windsurf"
+  ],
+  "author": {
+    "name": "MEOK AI Labs",
+    "email": "hello@meok.ai",
+    "url": "https://meok.ai"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ]
+}
