@@ -2,59 +2,93 @@
 
 [![npm](https://img.shields.io/npm/v/meok-setup)](https://www.npmjs.com/package/meok-setup)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 [![MEOK AI Labs](https://img.shields.io/badge/MEOK_AI_Labs-installer-purple)](https://meok.ai)
 
-**Zero-friction installer for MEOK governance MCP servers.**
+**Zero-friction installer for MEOK AI compliance MCP servers.**
 
-One command sets up EU AI Act, DORA, NIS2, CRA, GDPR (and 30+ more) compliance MCPs across Claude Desktop, Cursor, VS Code, and Windsurf.
+One command installs EU AI Act, GDPR, ISO 27001, NIS2, DORA, HIPAA, OWASP, and 200+ more compliance MCPs across Claude Desktop, Cursor, VS Code, and Windsurf.
 
 ## Quick start
 
 ```bash
-# Install governance pack (10 MCPs) into Claude Desktop
+# Install governance pack (13 MCPs) into Claude Desktop
 npx meok-setup
 
-# Or pick a different pack
-npx meok-setup --pack a2a         # 6 agent-to-agent MCPs
-npx meok-setup --pack trade       # 7 UK trade verticals
-npx meok-setup --pack industry    # 8 industry verticals (crypto, medical, fintech)
-npx meok-setup --pack cybersec    # 6 cybersecurity MCPs
-npx meok-setup --pack all         # All 37 MCPs
+# Pick a specific pack
+npx meok-setup --pack healthcare
+npx meok-setup --pack security
+npx meok-setup --pack all
 
-# Different client
+# Target a different client
 npx meok-setup --client cursor
+npx meok-setup --client vscode
 npx meok-setup --client windsurf
 
-# Skip prompt
-npx meok-setup -y
+# Preview without writing files
+npx meok-setup --dry-run --pack governance
+
+# Skip confirmation prompt
+npx meok-setup --pack governance --yes
 ```
+
+## Options
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--pack <name>` | `-p` | Server pack to install (default: `governance`) |
+| `--client <name>` | `-c` | Target client: `claude`, `cursor`, `vscode`, `windsurf` |
+| `--list` | `-l` | List all available packs and servers |
+| `--dry-run` | `-n` | Preview changes without writing files |
+| `--uninstall` | `-u` | Remove MCP servers from client config |
+| `--yes` | `-y` | Skip confirmation prompt |
+| `--help` | `-h` | Show help |
+| `--version` | `-V` | Show version |
+
+## Packs
+
+| Pack | Servers | Coverage |
+|------|---------|----------|
+| `governance` | 13 | EU AI Act, GDPR, ISO 27001, ISO 42001, NIS2, DORA, CRA, AI-BOM, bias detection |
+| `healthcare` | 5 | HIPAA, FHIR, SaMD, MDR, clinical AI governance |
+| `finance` | 4 | Basel, MiFID II, AML, MiCA crypto |
+| `security` | 8 | OWASP, MITRE ATT&CK/ATLAS, CISA KEV, SBOM, SLSA, Sigstore |
+| `a2a` | 6 | Agent policy, audit, rate limiting, handoff, prompt injection firewall, data residency |
+| `trade` | 7 | UK haulage, skip hire, BIM, NRSWA, CHAS, crane, concrete pump |
+| `industry` | 9 | MiCA, MDR, FDA SaMD, COPPA/FERPA, Basel, MiFID II, AML, food safety |
+| `all` | 218+ | Every MEOK compliance MCP server |
 
 ## What it does
 
-1. **Installs Python packages** via `pip install --user`
-2. **Updates your MCP client config** (Claude Desktop / Cursor / Windsurf) — appends to existing config, doesn't overwrite
-3. **Reminds you to restart** your client + set `MEOK_API_KEY` for Pro tier
+1. **Detects** installed MCP clients (Claude Desktop, Cursor, VS Code, Windsurf)
+2. **Writes** MCP server entries to the appropriate config file
+3. **Preserves** existing config — appends, never overwrites
+4. **Backs up** config before writing (`.bak` file)
+5. **Skips** servers already present in config
 
-## Packs available
+## Uninstall
 
-| Pack | Count | Use case |
-|------|-------|----------|
-| `governance` | 10 | EU AI Act, DORA, NIS2, CRA, GDPR, bias, AI-BOM |
-| `a2a` | 6 | Multi-agent governance: policy, audit, rate limit, handoff, prompt injection, data residency |
-| `trade` | 7 | UK trade: haulage, skip hire, BIM, NRSWA, CHAS, crane, concrete pump |
-| `industry` | 8 | MiCA crypto, MDR, FDA SaMD, COPPA/FERPA, Basel, MiFID II, AML, food |
-| `cybersec` | 6 | CISA KEV, SBOM, MITRE ATT&CK/ATLAS, SLSA, Sigstore |
-| `all` | 37 | Everything |
+```bash
+# Remove a specific pack
+npx meok-setup --uninstall --pack governance
+
+# Remove everything from a client
+npx meok-setup --uninstall --pack all --client cursor
+```
 
 ## Pricing
 
-Free tier: 10 calls/day per MCP. No API key needed.
-Pro tier: £79/mo, unlimited + signed attestations. https://buy.stripe.com/14A4gB3K4eUWgYR56o8k836
-Enterprise: £1,499/mo. hello@meok.ai
+| Tier | Price | Features |
+|------|-------|----------|
+| Free | £0 | 10 calls/day per MCP, no API key required |
+| Pro | £79/mo | Unlimited calls, signed attestations, priority support |
+| Enterprise | £1,499/mo | Custom SLA, on-prem, dedicated support |
+
+Subscribe: https://buy.stripe.com/14A4gB3K4eUWgYR56o8k836
 
 ## Verifying compliance attestations
 
-Every Pro/Enterprise audit emits an HMAC-signed cert with a public verify URL. Verify any cert without contacting MEOK:
+Every Pro/Enterprise audit emits an HMAC-signed cert with a public verify URL:
 
 ```
 https://meok-attestation-api.vercel.app/verify
