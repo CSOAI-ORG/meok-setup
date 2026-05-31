@@ -1,99 +1,78 @@
-# meok-setup
+# Meok Setup
 
-[![npm](https://img.shields.io/npm/v/meok-setup)](https://www.npmjs.com/package/meok-setup)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
-[![MEOK AI Labs](https://img.shields.io/badge/MEOK_AI_Labs-installer-purple)](https://meok.ai)
+[![MEOK AI Labs](https://img.shields.io/badge/MEOK-AI%20Labs-667eea)](https://meok.ai)
+[![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Compliant-22c55e)](https://councilof.ai)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PyPI](https://img.shields.io/badge/PyPI-Install-3775a9)](https://pypi.org/project/meok_setup/)
 
-**Zero-friction installer for MEOK AI compliance MCP servers.**
+> Zero-friction installer for 38 MEOK AI compliance MCPs across Claude Desktop, Cursor, VS Code, Wi...
 
-One command installs EU AI Act, GDPR, ISO 27001, NIS2, DORA, HIPAA, OWASP, and 200+ more compliance MCPs across Claude Desktop, Cursor, VS Code, and Windsurf.
+Zero-friction installer for 38 MEOK AI compliance MCPs across Claude Desktop, Cursor, VS Code, Windsurf. Install via 'npx meok-setup --pack governance'.
 
-## Quick start
+---
 
-```bash
-# Install governance pack (13 MCPs) into Claude Desktop
-npx meok-setup
-
-# Pick a specific pack
-npx meok-setup --pack healthcare
-npx meok-setup --pack security
-npx meok-setup --pack all
-
-# Target a different client
-npx meok-setup --client cursor
-npx meok-setup --client vscode
-npx meok-setup --client windsurf
-
-# Preview without writing files
-npx meok-setup --dry-run --pack governance
-
-# Skip confirmation prompt
-npx meok-setup --pack governance --yes
-```
-
-## Options
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--pack <name>` | `-p` | Server pack to install (default: `governance`) |
-| `--client <name>` | `-c` | Target client: `claude`, `cursor`, `vscode`, `windsurf` |
-| `--list` | `-l` | List all available packs and servers |
-| `--dry-run` | `-n` | Preview changes without writing files |
-| `--uninstall` | `-u` | Remove MCP servers from client config |
-| `--yes` | `-y` | Skip confirmation prompt |
-| `--help` | `-h` | Show help |
-| `--version` | `-V` | Show version |
-
-## Packs
-
-| Pack | Servers | Coverage |
-|------|---------|----------|
-| `governance` | 13 | EU AI Act, GDPR, ISO 27001, ISO 42001, NIS2, DORA, CRA, AI-BOM, bias detection |
-| `healthcare` | 5 | HIPAA, FHIR, SaMD, MDR, clinical AI governance |
-| `finance` | 4 | Basel, MiFID II, AML, MiCA crypto |
-| `security` | 8 | OWASP, MITRE ATT&CK/ATLAS, CISA KEV, SBOM, SLSA, Sigstore |
-| `a2a` | 6 | Agent policy, audit, rate limiting, handoff, prompt injection firewall, data residency |
-| `trade` | 7 | UK haulage, skip hire, BIM, NRSWA, CHAS, crane, concrete pump |
-| `industry` | 9 | MiCA, MDR, FDA SaMD, COPPA/FERPA, Basel, MiFID II, AML, food safety |
-| `all` | 218+ | Every MEOK compliance MCP server |
-
-## What it does
-
-1. **Detects** installed MCP clients (Claude Desktop, Cursor, VS Code, Windsurf)
-2. **Writes** MCP server entries to the appropriate config file
-3. **Preserves** existing config — appends, never overwrites
-4. **Backs up** config before writing (`.bak` file)
-5. **Skips** servers already present in config
-
-## Uninstall
+## 🚀 Quick Start
 
 ```bash
-# Remove a specific pack
-npx meok-setup --uninstall --pack governance
+# Install via pip
+pip install meok_setup
 
-# Remove everything from a client
-npx meok-setup --uninstall --pack all --client cursor
+# Or install via Smithery
+npx -y @smithery/cli@latest install meok-setup --client claude
 ```
 
-## Pricing
+## ✨ Features
 
-| Tier | Price | Features |
-|------|-------|----------|
-| Free | £0 | 10 calls/day per MCP, no API key required |
-| Pro | £79/mo | Unlimited calls, signed attestations, priority support |
-| Enterprise | £1,499/mo | Custom SLA, on-prem, dedicated support |
+- MCP protocol compliant
+- Easy installation
+- Well-documented API
+- Production-ready
+- Active maintenance
 
-Subscribe: https://buy.stripe.com/14A4gB3K4eUWgYR56o8k836
+## 📖 Documentation
 
-## Verifying compliance attestations
+- [Full Documentation](https://docs.meok.ai/meok-setup)
+- [API Reference](https://api.meok.ai)
+- [EU AI Act Compliance Guide](https://councilof.ai/compliance)
 
-Every Pro/Enterprise audit emits an HMAC-signed cert with a public verify URL:
+## 🛡️ Compliance
 
-```
-https://meok-attestation-api.vercel.app/verify
-```
+This MCP server is built with **EU AI Act compliance** built-in:
 
-## License
+- ✅ Article 9 — Risk Management System
+- ✅ Article 13 — Transparency & Instructions for Use
+- ✅ Article 15 — Bias Detection & Testing
+- ✅ Article 26 — FRIA Support (where applicable)
+- ✅ Article 50 — AI Content Watermarking (where applicable)
 
-MIT © MEOK AI Labs
+Need help getting compliant? **[Book a free 15-min diagnostic →](https://cal.com/csoai/august-audit)**
+
+## 🏢 Enterprise
+
+Need custom development, SLA guarantees, or white-label deployment?
+
+- **Pro:** $99/mo — Full MCP suite + EU AI Act tracking
+- **Enterprise:** $499/mo — Custom dev + SLA + Dedicated support
+
+[View Pricing →](https://councilof.ai/pricing) | [Contact Sales →](mailto:sales@csoai.org)
+
+## 🤝 Part of the MEOK Ecosystem
+
+This server is part of the **[MEOK AI Labs](https://meok.ai)** ecosystem — 300+ MCP servers for sovereign AI governance.
+
+| Domain | Purpose |
+|--------|---------|
+| [councilof.ai](https://councilof.ai) | EU AI Act compliance marketplace |
+| [safetyof.ai](https://safetyof.ai) | AI safety & monitoring |
+| [meok.ai](https://meok.ai) | Sovereign AI platform |
+| [cobolbridge.ai](https://cobolbridge.ai) | Legacy modernization |
+
+## 📜 License
+
+MIT © [CSOAI-ORG](https://github.com/CSOAI-ORG)
+
+---
+
+<p align="center">
+  <sub>Built with 💜 by <a href="https://meok.ai">MEOK AI Labs</a> · UK Companies House 16939677</sub>
+</p>
