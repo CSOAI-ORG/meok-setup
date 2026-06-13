@@ -336,7 +336,7 @@ ${c.bold(`${c.green("✓")} Done!`)}
     console.log(`  1. Restart ${client.name} to load the new servers.`);
     console.log(`  2. Set ${c.cyan("MEOK_API_KEY")} for Pro tier features:`);
     console.log(`     ${c.dim("export MEOK_API_KEY=...")}`);
-    console.log(`     ${c.dim("Subscribe: https://buy.stripe.com/14A4gB3K4eUWgYR56o8k836")} ${c.dim("(£79/mo)")}`);
+    console.log(`     ${c.dim("Subscribe: https://buy.stripe.com/00wfZjcgAeUW4c5cyQ8k90K")} ${c.dim("(£79/mo)")}`);
     console.log(`\n  ${c.dim("Free tier: 10 calls/day, no key required.")}`);
     console.log(`  ${c.dim("Docs: https://meok.ai")}`);
     console.log(`  ${c.dim("Support: hello@meok.ai")}`);

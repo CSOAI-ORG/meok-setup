@@ -84,7 +84,7 @@ npx meok-setup --uninstall --pack all --client cursor
 | Pro | £79/mo | Unlimited calls, signed attestations, priority support |
 | Enterprise | £1,499/mo | Custom SLA, on-prem, dedicated support |
 
-Subscribe: https://buy.stripe.com/14A4gB3K4eUWgYR56o8k836
+Subscribe: https://buy.stripe.com/00wfZjcgAeUW4c5cyQ8k90K
 
 ## Verifying compliance attestations
 
