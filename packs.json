@@ -1,7 +1,16 @@
 {
-  "governance": {
-    "description": "EU AI Act, GDPR, ISO 27001, NIS2, DORA compliance",
+  "gspc": {
+    "description": "Council of AI canonical GSPC measurement board & Ed25519 receipt verifier (csoai-gspc-mcp + councilof.ai/mcp)",
     "servers": [
+      "csoai-gspc-mcp",
+      "councilof-ai"
+    ]
+  },
+  "governance": {
+    "description": "GSPC live measurement board + EU AI Act, GDPR, ISO 27001, NIS2, DORA packs",
+    "servers": [
+      "csoai-gspc-mcp",
+      "councilof-ai",
       "eu-ai-act-compliance-mcp",
       "gdpr-compliance-ai-mcp",
       "iso-27001-ai-mcp",
@@ -20,6 +29,7 @@
   "healthcare": {
     "description": "HIPAA, FHIR, SaMD, clinical AI governance",
     "servers": [
+      "csoai-gspc-mcp",
       "hipaa-compliance-mcp",
       "healthcare-ai-governance-mcp",
       "fhir-compliance-mcp",
@@ -30,6 +40,7 @@
   "finance": {
     "description": "Basel, MiFID II, AML, MiCA, DORA financial",
     "servers": [
+      "csoai-gspc-mcp",
       "basel-ai-overlay-mcp",
       "mifid-ii-ai-mcp",
       "aml-ai-mcp",
@@ -39,6 +50,7 @@
   "security": {
     "description": "OWASP, MITRE ATLAS, vulnerability scanning",
     "servers": [
+      "csoai-gspc-mcp",
       "owasp-agentic-mcp",
       "mitre-atlas-mcp",
       "mitre-attack-mcp",
@@ -52,6 +64,8 @@
   "a2a": {
     "description": "Agent-to-agent governance: policy, audit, rate limit, handoff, prompt injection, data residency",
     "servers": [
+      "csoai-gspc-mcp",
+      "councilof-ai",
       "agent-policy-enforcement-mcp",
       "agent-audit-logger-mcp",
       "agent-rate-limiter-mcp",
@@ -75,6 +89,7 @@
   "industry": {
     "description": "MiCA crypto, MDR/IVDR, FDA SaMD, COPPA/FERPA, Basel, MiFID II, AML",
     "servers": [
+      "csoai-gspc-mcp",
       "mica-crypto-mcp",
       "mdr-medical-device-mcp",
       "fda-samd-mcp",
@@ -87,7 +102,7 @@
     ]
   },
   "all": {
-    "description": "All MEOK compliance MCP servers",
+    "description": "All GSPC + MEOK MCP servers",
     "servers": ["*"]
   }
 }
