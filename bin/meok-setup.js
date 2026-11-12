@@ -8,6 +8,9 @@ import readline from "node:readline";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+export const GSPC_BOARD_URL = "https://councilof.ai/api/gspc";
+export const COUNCIL_MCP_URL = "https://councilof.ai/mcp";
+
 const ANSI = {
   reset: "\x1b[0m",
   bold: "\x1b[1m",
@@ -15,13 +18,7 @@ const ANSI = {
   red: "\x1b[31m",
   green: "\x1b[32m",
   yellow: "\x1b[33m",
-  blue: "\x1b[34m",
-  magenta: "\x1b[35m",
   cyan: "\x1b[36m",
-  white: "\x1b[37m",
-  bgGreen: "\x1b[42m",
-  bgRed: "\x1b[41m",
-  bgYellow: "\x1b[43m",
 };
 
 const c = {
@@ -37,61 +34,79 @@ const c = {
   yellow: (s) => `${ANSI.yellow}${s}${ANSI.reset}`,
 };
 
-function loadPacks() {
+export function loadPacks() {
   const packsPath = join(__dirname, "..", "packs.json");
   if (!existsSync(packsPath)) {
-    console.log(c.err("packs.json not found. Reinstall meok-setup."));
-    process.exit(1);
+    throw new Error("packs.json not found. Reinstall meok-setup.");
   }
   return JSON.parse(readFileSync(packsPath, "utf-8"));
 }
 
-const CLIENTS = {
-  claude: {
-    name: "Claude Desktop",
-    configPath:
-      platform() === "darwin"
-        ? join(homedir(), "Library", "Application Support", "Claude", "claude_desktop_config.json")
-        : platform() === "win32"
-          ? join(process.env.APPDATA || "", "Claude", "claude_desktop_config.json")
-          : join(homedir(), ".config", "Claude", "claude_desktop_config.json"),
-    configKey: "mcpServers",
-  },
-  cursor: {
-    name: "Cursor",
-    configPath: join(homedir(), ".cursor", "mcp.json"),
-    configKey: "mcpServers",
-  },
-  vscode: {
-    name: "VS Code",
-    configPath:
-      platform() === "darwin"
-        ? join(homedir(), "Library", "Application Support", "Code", "User", "settings.json")
-        : platform() === "win32"
-          ? join(process.env.APPDATA || "", "Code", "User", "settings.json")
-          : join(homedir(), ".config", "Code", "User", "settings.json"),
-    configKey: "mcp",
-  },
-  windsurf: {
-    name: "Windsurf",
-    configPath: join(homedir(), ".codeium", "windsurf", "mcp_config.json"),
-    configKey: "mcpServers",
-  },
-};
+export function buildClients(home = homedir(), osPlatform = platform(), env = process.env) {
+  return {
+    claude: {
+      name: "Claude Desktop",
+      configPath:
+        osPlatform === "darwin"
+          ? join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json")
+          : osPlatform === "win32"
+            ? join(env.APPDATA || "", "Claude", "claude_desktop_config.json")
+            : join(home, ".config", "Claude", "claude_desktop_config.json"),
+      configKey: "mcpServers",
+      supportsRemoteUrl: false,
+    },
+    "claude-code": {
+      name: "Claude Code",
+      configPath: join(home, ".claude.json"),
+      configKey: "mcpServers",
+      supportsRemoteUrl: true,
+    },
+    cursor: {
+      name: "Cursor",
+      configPath: join(home, ".cursor", "mcp.json"),
+      configKey: "mcpServers",
+      supportsRemoteUrl: true,
+    },
+    vscode: {
+      name: "VS Code",
+      configPath:
+        osPlatform === "darwin"
+          ? join(home, "Library", "Application Support", "Code", "User", "settings.json")
+          : osPlatform === "win32"
+            ? join(env.APPDATA || "", "Code", "User", "settings.json")
+            : join(home, ".config", "Code", "User", "settings.json"),
+      configKey: "mcp",
+      supportsRemoteUrl: true,
+    },
+    windsurf: {
+      name: "Windsurf",
+      configPath: join(home, ".codeium", "windsurf", "mcp_config.json"),
+      configKey: "mcpServers",
+      supportsRemoteUrl: true,
+    },
+    gemini: {
+      name: "Gemini CLI",
+      configPath: join(home, ".gemini", "settings.json"),
+      configKey: "mcpServers",
+      supportsRemoteUrl: true,
+    },
+  };
+}
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const args = { _: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--pack" || a === "-p") args.pack = argv[++i];
     else if (a === "--client" || a === "-c") args.client = argv[++i];
+    else if (a === "--config-path") args.configPath = argv[++i];
     else if (a === "--list" || a === "-l") args.list = true;
+    else if (a === "--check-gspc" || a === "--board") args.checkGspc = true;
     else if (a === "--dry-run" || a === "-n") args.dryRun = true;
     else if (a === "--uninstall" || a === "-u") args.uninstall = true;
     else if (a === "--yes" || a === "-y") args.yes = true;
     else if (a === "--help" || a === "-h") args.help = true;
     else if (a === "--version" || a === "-V") args.version = true;
-    else if (!a.startsWith("-")) args._.push(a);
     else args._.push(a);
   }
   return args;
@@ -99,14 +114,16 @@ function parseArgs(argv) {
 
 function showHelp() {
   console.log(`
-${c.bold("meok-setup")} — Install MEOK AI compliance MCP servers
+${c.bold("meok-setup")} — Configure Council of AI GSPC & MEOK MCP servers
 
 ${c.bold("USAGE")}
   npx meok-setup [options]
 
 ${c.bold("OPTIONS")}
-  -p, --pack <name>       Server pack to install (default: governance)
-  -c, --client <name>     Target client: claude, cursor, vscode, windsurf (default: claude)
+  -p, --pack <name>       Server pack to install (default: gspc)
+  -c, --client <name>     Target client: claude, claude-code, cursor, vscode, windsurf, gemini (default: claude)
+      --config-path <p>   Explicit config file path override
+      --check-gspc        Fetch live GET https://councilof.ai/api/gspc totals verbatim
   -l, --list              List available packs and servers
   -n, --dry-run           Preview changes without writing files
   -u, --uninstall         Remove MCP servers from client config
@@ -115,24 +132,15 @@ ${c.bold("OPTIONS")}
   -V, --version           Show version
 
 ${c.bold("EXAMPLES")}
-  npx meok-setup                          Install governance pack for Claude Desktop
-  npx meok-setup --pack healthcare        Install healthcare pack
-  npx meok-setup --pack all --client cursor   Install all packs for Cursor
-  npx meok-setup --list                   List all available packs
-  npx meok-setup --uninstall --pack governance   Remove governance pack
-  npx meok-setup --dry-run --pack security    Preview security pack install
+  npx meok-setup                              Install canonical GSPC pack for Claude Desktop
+  npx meok-setup --pack gspc --client cursor  Configure csoai-gspc-mcp + councilof.ai/mcp in Cursor
+  npx meok-setup --check-gspc                 Read live GSPC board public_count & lid verbatim
+  npx meok-setup --pack governance -y         Configure governance + GSPC pack
 
-${c.bold("PACKS")}
-  governance   EU AI Act, GDPR, ISO 27001, NIS2, DORA
-  healthcare   HIPAA, FHIR, SaMD, clinical AI governance
-  finance      Basel, MiFID II, AML, MiCA
-  security     OWASP, MITRE ATLAS, vulnerability scanning
-  a2a          Agent-to-agent governance
-  trade        UK trade verticals
-  industry     Cross-industry compliance
-  all          All MEOK compliance MCP servers
-
-${c.dim("Docs: https://meok.ai · Support: hello@meok.ai")}
+${c.bold("CANONICAL AUTHORITY")}
+  Live board:     ${GSPC_BOARD_URL}
+  Remote gateway: ${COUNCIL_MCP_URL} (single remote MCP gateway; measurement, not certification)
+  MEOK surface:   https://meok.ai
 `);
 }
 
@@ -144,10 +152,13 @@ function showVersion() {
 function listPacks(packs) {
   console.log(`\n${c.bold("Available MCP Server Packs")}\n`);
   for (const [key, pack] of Object.entries(packs)) {
-    const count = pack.servers[0] === "*" ? "218+" : pack.servers.length;
-    console.log(`  ${c.cyan(key.padEnd(12))} ${c.dim(`(${count} servers)`)} ${pack.description}`);
+    const allServers =
+      pack.servers[0] === "*"
+        ? [...new Set(Object.values(packs).flatMap((p) => p.servers).filter((s) => s !== "*"))]
+        : pack.servers;
+    console.log(`  ${c.cyan(key.padEnd(12))} ${c.dim(`(${allServers.length} servers)`)} ${pack.description}`);
     if (key !== "all") {
-      for (const s of pack.servers) {
+      for (const s of allServers) {
         console.log(`  ${c.dim("".padEnd(12))} ${c.dim("├─")} ${s}`);
       }
     }
@@ -155,23 +166,64 @@ function listPacks(packs) {
   }
 }
 
-function detectClients() {
-  const found = [];
-  for (const [key, client] of Object.entries(CLIENTS)) {
-    if (existsSync(client.configPath)) {
-      found.push(key);
-    }
+export function buildMcpEntry(serverName, clientKey = "claude", clients = buildClients()) {
+  const client = clients[clientKey] || { supportsRemoteUrl: false };
+  if (serverName === "csoai-gspc-mcp") {
+    return {
+      command: "npx",
+      args: ["-y", "csoai-gspc-mcp"],
+    };
   }
-  return found;
-}
-
-function buildMcpEntry(serverName) {
+  if (serverName === "councilof-ai") {
+    if (!client.supportsRemoteUrl) {
+      return null;
+    }
+    if (clientKey === "vscode") {
+      return { type: "http", url: COUNCIL_MCP_URL };
+    }
+    if (clientKey === "windsurf") {
+      return { serverUrl: COUNCIL_MCP_URL };
+    }
+    if (clientKey === "gemini") {
+      return { httpUrl: COUNCIL_MCP_URL };
+    }
+    return { type: "http", url: COUNCIL_MCP_URL };
+  }
   const moduleName = serverName.replace(/-/g, "_");
   return {
     command: "python",
     args: ["-m", moduleName],
-    env: { MEOK_API_KEY: "${MEOK_API_KEY}" },
   };
+}
+
+export async function fetchGspcBoard(fetchImpl = globalThis.fetch) {
+  try {
+    const res = await fetchImpl(GSPC_BOARD_URL, {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) {
+      return { ok: false, state: "UNCHECKABLE", reason: `HTTP ${res.status}`, source: GSPC_BOARD_URL };
+    }
+    const data = await res.json();
+    const publicCount = data?.totals?.public_count;
+    if (!publicCount) {
+      return { ok: false, state: "UNCHECKABLE", reason: "missing totals.public_count", source: GSPC_BOARD_URL };
+    }
+    return {
+      ok: true,
+      state: "LIVE",
+      source: GSPC_BOARD_URL,
+      gateway: COUNCIL_MCP_URL,
+      schema: data.schema || null,
+      public_count: publicCount,
+      separation_public_count: data.totals?.separation_public_count || null,
+      lid: data.totals?.lid || null,
+      doctrine: "Measurement, not certification. Counts quoted verbatim from GET https://councilof.ai/api/gspc.",
+    };
+  } catch (err) {
+    return { ok: false, state: "UNCHECKABLE", reason: String(err?.message || err), source: GSPC_BOARD_URL };
+  }
 }
 
 function readConfig(configPath) {
@@ -193,11 +245,11 @@ function writeConfig(configPath, config, dryRun) {
     writeFileSync(`${configPath}.bak`, readFileSync(configPath));
     console.log(c.dim(`  Backed up to ${configPath}.bak`));
   }
-  writeFileSync(configPath, JSON.stringify(config, null, 2));
+  writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
 }
 
-function getConfigSection(config, clientKey) {
-  const client = CLIENTS[clientKey];
+export function getConfigSection(config, clientKey, clients = buildClients()) {
+  const client = clients[clientKey];
   if (clientKey === "vscode") {
     config["mcp"] = config["mcp"] || {};
     config["mcp"]["servers"] = config["mcp"]["servers"] || {};
@@ -217,65 +269,79 @@ function prompt(question) {
   });
 }
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
+export async function runCli(argv = process.argv.slice(2)) {
+  const args = parseArgs(argv);
   const packs = loadPacks();
+  const clients = buildClients();
 
   if (args.version) {
     showVersion();
-    process.exit(0);
+    return 0;
   }
 
   if (args.help) {
     showHelp();
-    process.exit(0);
+    return 0;
   }
 
   if (args.list) {
     listPacks(packs);
-    process.exit(0);
+    return 0;
   }
 
-  const packKey = args.pack || "governance";
+  if (args.checkGspc) {
+    const status = await fetchGspcBoard();
+    console.log(JSON.stringify(status, null, 2));
+    return status.ok ? 0 : 2;
+  }
+
+  const packKey = args.pack || "gspc";
   const clientKey = args.client || "claude";
 
   if (!packs[packKey]) {
     console.log(c.err(`Unknown pack '${packKey}'. Use --list to see available packs.`));
-    process.exit(1);
+    return 1;
   }
 
-  if (!CLIENTS[clientKey]) {
-    console.log(c.err(`Unknown client '${clientKey}'. Available: ${Object.keys(CLIENTS).join(", ")}`));
-    process.exit(1);
+  if (!clients[clientKey]) {
+    console.log(c.err(`Unknown client '${clientKey}'. Available: ${Object.keys(clients).join(", ")}`));
+    return 1;
   }
 
   const pack = packs[packKey];
-  const client = CLIENTS[clientKey];
-  const isDryRun = args.dryRun;
-  const isUninstall = args.uninstall;
+  const client = clients[clientKey];
+  const targetConfigPath = args.configPath || client.configPath;
+  const isDryRun = Boolean(args.dryRun);
+  const isUninstall = Boolean(args.uninstall);
 
-  const servers = pack.servers[0] === "*"
-    ? Object.values(packs).flatMap((p) => p.servers).filter((s) => s !== "*")
-    : [...new Set(pack.servers)];
+  const rawServers =
+    pack.servers[0] === "*"
+      ? [...new Set(Object.values(packs).flatMap((p) => p.servers).filter((s) => s !== "*"))]
+      : [...new Set(pack.servers)];
+
+  const servers = isUninstall
+    ? rawServers
+    : rawServers.filter((s) => buildMcpEntry(s, clientKey, clients) !== null);
 
   const action = isUninstall ? "Uninstall" : "Install";
   const actionLower = isUninstall ? "uninstall" : "install";
 
   console.log(`
-${c.bold("🛡  MEOK AI Labs — Compliance MCP Setup")}
+${c.bold("Council of AI × MEOK — GSPC & MCP Setup")}
 ${c.dim("────────────────────────────────────────")}
 
   ${c.bold("Action:")}  ${action} ${c.cyan(packKey)} pack ${c.dim(`(${servers.length} servers)`)}
   ${c.bold("Client:")}  ${client.name}
-  ${c.bold("Config:")}  ${c.dim(client.configPath)}
+  ${c.bold("Config:")}  ${c.dim(targetConfigPath)}
   ${isDryRun ? c.yellow("  Mode:    DRY RUN — no files will be written\n") : ""}
 `);
 
-  const detected = detectClients();
-  if (detected.length > 0) {
-    console.log(c.ok(`Detected clients: ${detected.map((k) => CLIENTS[k].name).join(", ")}`));
-  } else {
-    console.log(c.warn("No MCP client configs detected. A new config will be created."));
+  if (!isUninstall && rawServers.includes("councilof-ai") && !client.supportsRemoteUrl) {
+    console.log(
+      c.info(
+        `${client.name} uses stdio MCP configs; installing csoai-gspc-mcp (stdio) for live GSPC reads and verification.`
+      )
+    );
   }
 
   console.log(`\n${c.bold(`Servers to ${actionLower} (${servers.length}):`)}`);
@@ -287,14 +353,12 @@ ${c.dim("───────────────────────�
     const answer = await prompt(`\n${c.bold(`Proceed with ${actionLower}?`)} [Y/n] `);
     if (answer.toLowerCase() === "n") {
       console.log(c.info("Cancelled."));
-      process.exit(0);
+      return 0;
     }
   }
 
-  console.log(`\n${c.bold(`${action}ing servers...`)}`);
-
-  let config = readConfig(client.configPath) || {};
-  const configSection = getConfigSection(config, clientKey);
+  let config = readConfig(targetConfigPath) || {};
+  const configSection = getConfigSection(config, clientKey, clients);
 
   let successCount = 0;
   let skipCount = 0;
@@ -314,15 +378,18 @@ ${c.dim("───────────────────────�
         console.log(c.dim(`  Skipped ${serverName} (already installed)`));
         skipCount++;
       } else {
-        configSection[serverName] = buildMcpEntry(serverName);
-        console.log(c.ok(`Added ${serverName}`));
-        successCount++;
+        const entry = buildMcpEntry(serverName, clientKey, clients);
+        if (entry) {
+          configSection[serverName] = entry;
+          console.log(c.ok(`Added ${serverName}`));
+          successCount++;
+        }
       }
     }
   }
 
   if (successCount > 0 || isDryRun) {
-    writeConfig(client.configPath, config, isDryRun);
+    writeConfig(targetConfigPath, config, isDryRun);
   }
 
   console.log(`
@@ -333,19 +400,24 @@ ${c.bold(`${c.green("✓")} Done!`)}
 
   if (!isUninstall) {
     console.log(`${c.bold("Next steps:")}`);
-    console.log(`  1. Restart ${client.name} to load the new servers.`);
-    console.log(`  2. Set ${c.cyan("MEOK_API_KEY")} for Pro tier features:`);
-    console.log(`     ${c.dim("export MEOK_API_KEY=...")}`);
-    console.log(`     ${c.dim("Subscribe: https://buy.stripe.com/00wfZjcgAeUW4c5cyQ8k90K")} ${c.dim("(£79/mo)")}`);
-    console.log(`\n  ${c.dim("Free tier: 10 calls/day, no key required.")}`);
-    console.log(`  ${c.dim("Docs: https://meok.ai")}`);
-    console.log(`  ${c.dim("Support: hello@meok.ai")}`);
+    console.log(`  1. Restart ${client.name} to load the configured MCP servers.`);
+    console.log(`  2. Verify live GSPC board reachability anytime: ${c.cyan("npx meok-setup --check-gspc")}`);
+    console.log(`  ${c.dim(`Live board: ${GSPC_BOARD_URL} · Single remote gateway: ${COUNCIL_MCP_URL}`)}`);
+    console.log(`  ${c.dim("Measurement, not certification. Verification on councilof.ai is free forever.")}`);
   }
 
-  console.log();
+  return 0;
 }
 
-main().catch((e) => {
-  console.log(c.err(e.message));
-  process.exit(1);
-});
+const isDirectRun =
+  process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isDirectRun) {
+  runCli().then(
+    (code) => process.exit(code),
+    (e) => {
+      console.log(c.err(e.message));
+      process.exit(1);
+    }
+  );
+}
