@@ -22,7 +22,6 @@
     "servers": [
       "hipaa-compliance-mcp",
       "healthcare-ai-governance-mcp",
-      "fhir-compliance-mcp",
       "fda-samd-mcp",
       "mdr-medical-device-mcp"
     ]
@@ -41,12 +40,8 @@
     "servers": [
       "owasp-agentic-mcp",
       "mitre-atlas-mcp",
-      "mitre-attack-mcp",
-      "security-scanner-mcp",
       "cisa-kev-mcp",
-      "sbom-cyclonedx-mcp",
-      "slsa-supply-chain-mcp",
-      "sigstore-cosign-mcp"
+      "sbom-cyclonedx-mcp"
     ]
   },
   "a2a": {
@@ -88,6 +83,8 @@
   },
   "all": {
     "description": "All MEOK compliance MCP servers",
-    "servers": ["*"]
+    "servers": [
+      "*"
+    ]
   }
 }

@@ -1,76 +1,43 @@
-# Meok Setup
+# meok-setup
 
-[![MEOK AI Labs](https://img.shields.io/badge/MEOK-AI%20Labs-667eea)](https://meok.ai)
-[![GSPC](https://img.shields.io/badge/GSPC-live%20GET%20%2Fapi%2Fgspc-0ea5e9)](https://councilof.ai/api/gspc)
+[![MEOK](https://img.shields.io/badge/MEOK-CSOAI%20Ltd-667eea)](https://meok.ai)
 [![Measurement](https://img.shields.io/badge/Measurement-not%20certification-64748b)](https://councilof.ai/api/gspc)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![PyPI](https://img.shields.io/badge/PyPI-Install-3775a9)](https://pypi.org/project/meok_setup/)
 
-> Zero-friction installer for 38 MEOK AI compliance MCPs across Claude Desktop, Cursor, VS Code, Wi...
+Adds MEOK compliance MCP servers to Claude Desktop, Cursor, VS Code or Windsurf. It writes MCP entries into the client's config file, after backing it up. It installs nothing itself: each server is started on demand by [`uvx`](https://docs.astral.sh/uv/) from its own PyPI package, in its own isolated environment.
 
-Zero-friction installer for 38 MEOK AI compliance MCPs across Claude Desktop, Cursor, VS Code, Windsurf. Install via 'npx meok-setup --pack governance'.
-
----
-
-## 🚀 Quick Start
+## Quick start
 
 ```bash
-# Install via pip
-pip install meok_setup
-
-# Or install via Smithery
-npx -y @smithery/cli@latest install meok-setup --client claude
+npx meok-setup --list                       # packs and the servers in each
+npx meok-setup --dry-run --pack governance  # preview, writes nothing
+npx meok-setup --pack governance            # add the governance pack to Claude Desktop
+npx meok-setup --uninstall --pack governance
 ```
 
-## ✨ Features
+Requires Node 18+ and [uv](https://docs.astral.sh/uv/) on the machine running the MCP client.
 
-- MCP protocol compliant
-- Easy installation
-- Well-documented API
-- Production-ready
-- Active maintenance
+## What gets written
 
-## 📖 Documentation
+One entry per server, for example:
 
-- [Full Documentation](https://docs.meok.ai/meok-setup)
-- [API Reference](https://api.meok.ai)
-- [EU AI Act Compliance Guide](https://councilof.ai/compliance)
+```json
+"eu-ai-act-compliance-mcp": { "command": "uvx", "args": ["--from", "eu-ai-act-compliance-mcp", "--with", "mcp<2", "eu-ai-act-compliance-mcp"] }
+```
 
-## Honesty register (2026-09-02)
+`--with mcp<2` is a guard. The server packages declare `mcp>=1.28.0` with no upper bound, and the MCP Python SDK 2.0 (28 July 2026) renamed `FastMCP`, so a fresh unguarded install fails at import. The guard is dropped per server once that package is republished with `mcp<2` or migrated to mcp 2.
 
-**Live authority is `GET https://councilof.ai/api/gspc`** — cite `totals.public_count` and `totals.lid` from that payload. Do not type axis counts into this README.
+The package name and launch script for every server are in [`servers.json`](servers.json). They were read from each package's published wheel on PyPI, not typed by hand. `npx meok-setup --list` prints the current packs and counts from that file.
 
-- **Measurement, not certification.** CSOAI Ltd measures and signs; it does not certify, accredit, or act as a notified body.
-- **MEOK.ai is a shelf / frontend**, not a second Council. Printers and agents must read the live GSPC endpoint — never invent scores, never wrangler a stamp.
-- Prefer honest **UNCHECKABLE** over a fake stamp. This package does **not** certify EU AI Act compliance.
+## Pricing
 
+MEOK charges per delivered job; there are no subscriptions or tiers. See https://meok.ai/pricing.
 
-## 🏢 Enterprise
+## What this is not
 
-Need custom development, SLA guarantees, or white-label deployment?
+- **Measurement, not certification.** CSOAI Ltd measures and signs; it does not certify, accredit or act as a notified body. These servers do not certify EU AI Act or any other compliance.
+- Live measurement figures come from `GET https://councilof.ai/api/gspc`; this README does not repeat them.
 
-- **Pro:** $99/mo — Full MCP suite + EU AI Act tracking
-- **Enterprise:** $499/mo — Custom dev + SLA + Dedicated support
+## Licence
 
-[View Pricing →](https://councilof.ai/pricing) | [Contact Sales →](mailto:sales@csoai.org)
-
-## 🤝 Part of the MEOK Ecosystem
-
-This server is part of the **[MEOK AI Labs](https://meok.ai)** ecosystem — 300+ MCP servers for sovereign AI governance.
-
-| Domain | Purpose |
-|--------|---------|
-| [councilof.ai](https://councilof.ai) | Independent measurement board — live `GET /api/gspc` |
-| [safetyof.ai](https://safetyof.ai) | AI safety & monitoring |
-| [meok.ai](https://meok.ai) | Shelf / frontend (not a second Council) |
-| [cobolbridge.ai](https://cobolbridge.ai) | Legacy modernization |
-
-## 📜 License
-
-MIT © [CSOAI-ORG](https://github.com/CSOAI-ORG)
-
----
-
-<p align="center">
-  <sub>Built with 💜 by <a href="https://meok.ai">MEOK AI Labs</a> · UK Companies House 16939677</sub>
-</p>
+MIT © CSOAI Ltd (UK Companies House 16939677). MEOK is a trading name of CSOAI Ltd.

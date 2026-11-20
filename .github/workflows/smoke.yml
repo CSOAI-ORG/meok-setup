@@ -1,0 +1,24 @@
+# Nightly: start every server in servers.json exactly as the installer configures it
+# (uvx --from <pypi> --with mcp<2 <script>) and require an MCP initialize + tools/list.
+# Fails if any server cannot start. This is the check that would have caught the
+# mcp 2.0 import break (28 Jul 2026) and the v1.1.0 `python -m` entries.
+name: fleet-smoke
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths: ["servers.json", "packs.json", "bin/**", "scripts/smoke.mjs"]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: astral-sh/setup-uv@v5
+      - run: node scripts/smoke.mjs

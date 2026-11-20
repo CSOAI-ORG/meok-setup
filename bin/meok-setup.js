@@ -144,7 +144,7 @@ function showVersion() {
 function listPacks(packs) {
   console.log(`\n${c.bold("Available MCP Server Packs")}\n`);
   for (const [key, pack] of Object.entries(packs)) {
-    const count = pack.servers[0] === "*" ? "218+" : pack.servers.length;
+    const count = expandPack(packs, key).length;
     console.log(`  ${c.cyan(key.padEnd(12))} ${c.dim(`(${count} servers)`)} ${pack.description}`);
     if (key !== "all") {
       for (const s of pack.servers) {
@@ -165,13 +165,34 @@ function detectClients() {
   return found;
 }
 
-function buildMcpEntry(serverName) {
-  const moduleName = serverName.replace(/-/g, "_");
-  return {
-    command: "python",
-    args: ["-m", moduleName],
-    env: { MEOK_API_KEY: "${MEOK_API_KEY}" },
-  };
+function loadServers() {
+  const p = join(__dirname, "..", "servers.json");
+  if (!existsSync(p)) {
+    console.log(c.err("servers.json not found. Reinstall meok-setup."));
+    process.exit(1);
+  }
+  return JSON.parse(readFileSync(p, "utf-8")).servers;
+}
+
+// Each server runs from its own PyPI package via uvx, in its own isolated environment.
+// v1.1.0 wrote `python -m <name_with_underscores>`, a module none of the packages ship
+// (they install a top-level server.py with a console script), so configured servers could
+// not start; it also passed the literal string "${MEOK_API_KEY}" as an env value.
+function buildMcpEntry(serverName, launch) {
+  const l = launch[serverName];
+  if (!l) throw new Error(`No launch entry for ${serverName} in servers.json`);
+  // `with` pins extra requirements into the server's isolated environment (today: mcp<2,
+  // because the packages declare mcp>=1.28 with no upper bound and mcp 2 renamed FastMCP).
+  const withArgs = (l.with || []).flatMap((req) => ["--with", req]);
+  return { command: "uvx", args: ["--from", l.pypi, ...withArgs, l.script] };
+}
+
+function expandPack(packs, packKey) {
+  const pack = packs[packKey];
+  const list = pack.servers[0] === "*"
+    ? Object.values(packs).flatMap((p) => p.servers).filter((s) => s !== "*")
+    : pack.servers;
+  return [...new Set(list)];
 }
 
 function readConfig(configPath) {
@@ -254,9 +275,8 @@ async function main() {
   const isDryRun = args.dryRun;
   const isUninstall = args.uninstall;
 
-  const servers = pack.servers[0] === "*"
-    ? Object.values(packs).flatMap((p) => p.servers).filter((s) => s !== "*")
-    : [...new Set(pack.servers)];
+  const servers = expandPack(packs, packKey);
+  const launch = loadServers();
 
   const action = isUninstall ? "Uninstall" : "Install";
   const actionLower = isUninstall ? "uninstall" : "install";
@@ -314,7 +334,7 @@ ${c.dim("───────────────────────�
         console.log(c.dim(`  Skipped ${serverName} (already installed)`));
         skipCount++;
       } else {
-        configSection[serverName] = buildMcpEntry(serverName);
+        configSection[serverName] = buildMcpEntry(serverName, launch);
         console.log(c.ok(`Added ${serverName}`));
         successCount++;
       }
@@ -334,10 +354,8 @@ ${c.bold(`${c.green("✓")} Done!`)}
   if (!isUninstall) {
     console.log(`${c.bold("Next steps:")}`);
     console.log(`  1. Restart ${client.name} to load the new servers.`);
-    console.log(`  2. Set ${c.cyan("MEOK_API_KEY")} for Pro tier features:`);
-    console.log(`     ${c.dim("export MEOK_API_KEY=...")}`);
-    console.log(`     ${c.dim("Subscribe: https://buy.stripe.com/00wfZjcgAeUW4c5cyQ8k90K")} ${c.dim("(£79/mo)")}`);
-    console.log(`\n  ${c.dim("Free tier: 10 calls/day, no key required.")}`);
+    console.log(`  2. Servers start with ${c.cyan("uvx")}; install uv once if needed: ${c.dim("https://docs.astral.sh/uv/")}`);
+    console.log(`\n  ${c.dim("Pricing: https://meok.ai/pricing (per delivered job; no subscriptions).")}`);
     console.log(`  ${c.dim("Docs: https://meok.ai")}`);
     console.log(`  ${c.dim("Support: hello@meok.ai")}`);
   }
