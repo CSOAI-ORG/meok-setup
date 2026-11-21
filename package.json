@@ -1,7 +1,7 @@
 {
   "name": "meok-setup",
-  "version": "1.1.0",
-  "description": "Install MEOK AI compliance MCP servers for Claude Desktop, Cursor, VS Code, and more",
+  "version": "1.1.1",
+  "description": "Add MEOK compliance MCP servers to Claude Desktop, Cursor, VS Code and Windsurf (each launched with uvx from its own PyPI package)",
   "bin": {
     "meok-setup": "./bin/meok-setup.js"
   },
@@ -37,7 +37,11 @@
   "files": [
     "bin/",
     "packs.json",
+    "servers.json",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
 }
